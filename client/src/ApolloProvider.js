@@ -1,14 +1,23 @@
 import React from 'react';
 import App from './App';
 import ApolloClient from 'apollo-client';
+import { ApolloLink } from "apollo-link";
+import { RestLink } from 'apollo-link-rest';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { createHttpLink } from 'apollo-link-http';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { setContext } from 'apollo-link-context';
 
-const httpLink = createHttpLink({
-    uri:'http://localhost:5000/graphql'
+//RESTful API
+const restLink = new RestLink({
+  endpoints: {
+    uri:'http://localhost:4000'
+  }
+    
 })
+
+//GrpahQL API
+const httpLink = new createHttpLink({ uri: "http://localhost:5000/graphql" });
 
 const authLink = setContext(() => {
     const token = localStorage.getItem('jwtToken');
@@ -20,7 +29,7 @@ const authLink = setContext(() => {
   });
 
 const client = new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: ApolloLink.from([authLink.concat(httpLink), restLink]),
     cache: new InMemoryCache(),
     defaultOptions : { 
       watchQuery : { 
